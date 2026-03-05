@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <title>高對比液晶動態時鐘</title>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --clock-theme: #00ff41; /* 螢光綠 */
+            --bg-dark: #000000;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: var(--clock-theme);
+            font-family: 'Orbitron', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        /* 時鐘本體 */
+        .clock {
+            width: 350px;
+            height: 350px;
+            border: 6px solid #222;
+            border-radius: 50%;
+            position: relative;
+            background: radial-gradient(circle, #0a0a0a 0%, #000 80%);
+            box-shadow: 0 0 30px rgba(0, 255, 65, 0.1), inset 0 0 20px #000;
+            margin-bottom: 30px;
+        }
+
+        /* 刻度容器 */
+        .marks-container {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            transform: rotate(0deg);
+        }
+
+        /* 基礎刻度樣式 */
+        .mark {
+            position: absolute;
+            width: 2px;
+            height: 10px;
+            background: rgba(0, 255, 65, 0.3); /* 平時暗淡一點 */
+            left: 50%;
+            transform-origin: 0 175px; /* 指向圓心 */
+        }
+
+        /* 大刻度 (12小時) */
+        .mark.large {
+            width: 4px;
+            height: 20px;
+            background: var(--clock-theme);
+            box-shadow: 0 0 8px var(--clock-theme);
+        }
+
+        /* 指針樣式 */
+        .hand {
+            position: absolute;
+            bottom: 50%;
+            left: 50%;
+            transform-origin: bottom;
+            border-radius: 10px;
+        }
+
+        .hour-hand { width: 8px; height: 80px; background: #fff; margin-left: -4px; z-index: 3; }
+        .min-hand { width: 5px; height: 120px; background: var(--clock-theme); margin-left: -2.5px; z-index: 4; }
+        .sec-hand { width: 2px; height: 145px; background: #ff3131; margin-left: -1px; z-index: 5; }
+
+        .center-nut {
+            width: 14px;
+            height: 14px;
+            background: #fff;
+            border-radius: 50%;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 10;
+            box-shadow: 0 0 10px var(--clock-theme);
+        }
+
+        /* 下方液晶數字 */
+        .digital-wrap {
+            text-align: center;
+            border: 2px solid #222;
+            padding: 15px 30px;
+            border-radius: 10px;
+            background: #050505;
+        }
+
+        #digital-time {
+            font-size: 3.5rem;
+            font-weight: 700;
+            text-shadow: 0 0 15px var(--clock-theme);
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="clock" id="clock">
+        <div class="marks-container" id="marks"></div>
+        <div class="center-nut"></div>
+        <div class="hand hour-hand" id="hour"></div>
+        <div class="hand min-hand" id="min"></div>
+        <div class="hand sec-hand" id="sec"></div>
+    </div>
+
+    <div class="digital-wrap">
+        <p id="digital-time">00:00:00</p>
+    </div>
+
+    <script>
+        const marksContainer = document.getElementById('marks');
+
+        // 動態生成 60 個刻度
+        function createMarks() {
+            for (let i = 0; i < 60; i++) {
+                const mark = document.createElement('div');
+                mark.classList.add('mark');
+                
+                // 每 5 分鐘設為大刻度
+                if (i % 5 === 0) {
+                    mark.classList.add('large');
+                }
+                
+                // 計算角度：每個刻度 6 度 (360/60)
+                mark.style.transform = `translateX(-50%) rotate(${i * 6}deg)`;
+                marksContainer.appendChild(mark);
+            }
+        }
+
+        function updateClock() {
+            const now = new Date();
+            const s = now.getSeconds();
+            const m = now.getMinutes();
+            const h = now.getHours();
+
+            // 更新指針
+            document.getElementById('sec').style.transform = `rotate(${s * 6}deg)`;
+            document.getElementById('min').style.transform = `rotate(${m * 6 + s/10}deg)`;
+            document.getElementById('hour').style.transform = `rotate(${(h % 12) * 30 + m/2}deg)`;
+
+            // 更新數字 (液晶體)
+            const timeStr = [h, m, s].map(v => v.toString().padStart(2, '0')).join(':');
+            document.getElementById('digital-time').innerText = timeStr;
+        }
+
+        createMarks();
+        setInterval(updateClock, 1000);
+        updateClock();
+    </script>
+</body>
+</html>
